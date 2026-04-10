@@ -1,34 +1,47 @@
-name: Docker Build & Push
+name: Luffy Bank CI + Docker
 
 on:
   push:
     branches: [ "master" ]
 
 jobs:
-  docker:
+  build-and-docker:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # ✅ Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
+      # ✅ Setup Java
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # ✅ Cache Maven dependencies (🔥 FAST BUILDS)
+      - name: Cache Maven
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            maven-
+
+      # ✅ Build JAR (IMPORTANT PATH)
       - name: Build JAR
         run: mvn clean install -DskipTests
-        working-directory: luffy-banks   # 🔥 FIX HERE
+        working-directory: luffy-banks   # 🔥 your project folder
 
+      # ✅ Build Docker Image
       - name: Build Docker Image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/luffy-bank .
 
+      # ✅ Login to Docker Hub
       - name: Login Docker
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Push Image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/luffy-bank
-
-      - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/luffy-bank .
-
-      - name: Login Docker
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-
+      # ✅ Push Docker Image
       - name: Push Image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/luffy-bank
