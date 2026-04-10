@@ -1,11 +1,11 @@
-name: Luffy Bank CI Pipeline
+name: Luffy Bank CI + Docker
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-and-docker:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,7 +18,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Build Project
+      - name: Build JAR
         run: mvn clean install -DskipTests
 
       - name: Build Docker Image
